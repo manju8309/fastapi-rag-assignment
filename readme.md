@@ -1,134 +1,123 @@
 # FastAPI + AI RAG Assignment
 
-## Project Overview
+## 1. Project Overview
 
-This project is a backend application built using FastAPI that demonstrates JWT authentication, PostgreSQL database integration, document ingestion, text chunking, embeddings, semantic retrieval, and Retrieval-Augmented Generation (RAG).
+This project is a backend application built using FastAPI that demonstrates JWT authentication, PostgreSQL database integration, document ingestion, text chunking, embeddings, semantic retrieval, and Retrieval-Augmented Generation (RAG). The application allows users to create an account using signup, login securely using JWT authentication, upload and ingest text documents, store documents and document chunks in PostgreSQL, generate embeddings for document chunks, retrieve relevant document content based on user questions, generate answers based on retrieved document content, and log unhandled application errors into the database. The project follows a modular structure to keep authentication, database, document ingestion, RAG, routes, and middleware organized separately.
 
-The application allows users to:
+## 2. Prerequisites
 
-- Create an account using signup.
-- Login securely using JWT authentication.
-- Upload and ingest text documents.
-- Store documents and document chunks in PostgreSQL.
-- Generate embeddings for document chunks.
-- Retrieve relevant document content based on user questions.
-- Use an LLM to generate answers based on the retrieved content.
-- Log unhandled application errors into the database.
+Before running this project, make sure Python 3.11 or later, PostgreSQL, and Git are installed on your system. An OpenAI API key is also required for the RAG functionality. You should have a PostgreSQL database named `rag_assignment_db` and PostgreSQL should be running on the default port `5432`. Create a `.env` file in the root directory of the project and add the required environment variables such as the PostgreSQL database URL, secret key, and OpenAI API key.
 
-The project follows a modular structure to keep authentication, database, document ingestion, RAG, routes, and middleware organized separately.
+Example environment configuration:
 
----
+DATABASE_URL=postgresql://postgres:your_password@localhost:5432/rag_assignment_db
 
-## Features
+SECRET_KEY=your_secret_key
 
-### 1. JWT Authentication
+OPENAI_API_KEY=your_openai_api_key
 
-- User signup endpoint.
-- User login endpoint.
-- Passwords are securely hashed using bcrypt.
-- JWT access tokens are generated after successful login.
-- Protected functionality can use JWT authentication.
+Replace the placeholder values with your actual configuration. Do not upload the actual `.env` file, database passwords, or API keys to GitHub. The `.env` file is excluded from GitHub using `.gitignore`, while `.env.example` contains only placeholder values.
 
-### 2. PostgreSQL Database
+## 3. Steps to Install Dependencies
 
-PostgreSQL is used as the primary database.
+First, clone the repository using the following command:
 
-The application stores:
+git clone https://github.com/manju8309/fastapi-rag-assignment.git
 
-- Users
-- Documents
-- Document chunks
-- Embeddings
-- Error logs
+Open the project directory using:
 
-SQLAlchemy is used for database interaction.
+cd fastapi-rag-assignment
 
-### 3. Document Ingestion
+Create a Python virtual environment using:
 
-The document ingestion endpoint allows users to upload text documents.
+python -m venv venv
 
-The ingestion process includes:
+Activate the virtual environment. On Windows PowerShell, use:
 
-1. Uploading the document.
-2. Storing the document.
-3. Splitting the document into smaller chunks.
-4. Generating embeddings for the chunks.
-5. Storing the chunks and embeddings.
+.\venv\Scripts\Activate.ps1
 
-### 4. Retrieval-Augmented Generation (RAG)
+On Windows Command Prompt, use:
 
-The chat endpoint implements a basic RAG pipeline.
+venv\Scripts\activate
 
-The process is:
+After activating the virtual environment, install all required dependencies using:
 
-1. User submits a question.
-2. The question is converted into an embedding.
-3. Relevant document chunks are retrieved.
-4. Retrieved context is provided to the LLM.
-5. The LLM generates an answer based on the relevant context.
+pip install -r requirements.txt
 
-### 5. Error Logging Middleware
+After installing the dependencies, create a `.env` file in the root directory and configure the PostgreSQL database URL, secret key, and OpenAI API key. Use `.env.example` as a reference for the required environment variables.
 
-Custom FastAPI middleware handles unhandled exceptions.
+## 4. Instructions to Run the Project
 
-The middleware records information such as:
+Before running the application, make sure the Python virtual environment is activated, PostgreSQL is running, and the `.env` file is properly configured. Start the FastAPI application using the following command:
 
-- Timestamp
-- API endpoint
-- HTTP method
-- Error message
-- Stack trace
-- Authenticated user ID, when available
+python -m uvicorn app.main:app --reload
 
-The error information is stored in the PostgreSQL database.
+The application will run at `http://127.0.0.1:8000`. FastAPI provides interactive Swagger API documentation that can be accessed by opening `http://127.0.0.1:8000/docs` in a web browser. The Swagger UI can be used to test the available API endpoints.
 
-### 6. Modular Project Structure
+The available API endpoints include `GET /` to check whether the API is running, `POST /auth/signup` to create a new user account, `POST /auth/login` to authenticate a user and receive a JWT token, `POST /documents/ingest` to upload and process a document, and `POST /chat/` to ask questions based on the uploaded document.
 
-The project is organized into separate modules for better maintainability.
+The recommended testing order is to first create a user using `/auth/signup`, then login using `/auth/login`, upload a document using `/documents/ingest`, and finally ask a question using `/chat/`. The response can then be verified to ensure that it is based on the uploaded document content.
 
----
+## 5. Additional Information and Notes
 
-## Technologies Used
+The application follows a basic Retrieval-Augmented Generation (RAG) pipeline. The process starts when a user uploads a document. The document is stored in the database and split into smaller chunks. Embeddings are generated for the document chunks and stored for retrieval. When a user asks a question, the question is processed and relevant document chunks are retrieved. The relevant context is then provided to the language model to generate an answer based on the uploaded document.
 
-- Python
-- FastAPI
-- Uvicorn
-- PostgreSQL
-- SQLAlchemy
-- Pydantic
-- JWT
-- python-jose
-- Passlib
-- bcrypt
-- Sentence Transformers
-- NumPy
-- OpenAI API
-- python-dotenv
+The application uses PostgreSQL with SQLAlchemy for database management. The main database tables include Users, Documents, Document Chunks, and Error Logs. The Users table stores registered user information, the Documents table stores uploaded documents, the Document Chunks table stores the smaller sections created from documents along with their embeddings, and the Error Logs table stores application error information.
 
----
+The application implements authentication using JWT and securely hashes user passwords using bcrypt. JWT tokens are used for authentication, and sensitive configuration values are stored in the `.env` file. The `.env` file is excluded from GitHub using `.gitignore`, and the `.env.example` file contains only placeholder values. Real database passwords and API keys should never be uploaded to GitHub.
+
+The application also includes error logging middleware for handling unhandled application errors. The middleware can record information such as the timestamp, API endpoint, HTTP method, error message, stack trace, and user ID when available. This information is stored in the database for error tracking and debugging purposes.
+
+The project is organized into separate modules for better maintainability. The project structure includes the `app` directory containing `auth.py` for authentication and password handling, `database.py` for database configuration, `main.py` for the FastAPI application, `middleware.py` for error handling, `models.py` for database models, `rag.py` for RAG functionality, and `schemas.py` for request and response schemas. The `routes` directory contains `auth_routes.py` for authentication endpoints, `chat_routes.py` for chat functionality, `document_routes.py` for document ingestion, and `__init__.py`.
+
+The main technologies used in this project are Python, FastAPI, Uvicorn, PostgreSQL, SQLAlchemy, Pydantic, JWT, python-jose, Passlib, bcrypt, Sentence Transformers, NumPy, OpenAI API, and python-dotenv.
+
+The project is developed as part of a backend assignment to demonstrate FastAPI development practices, authentication, database integration, document processing, and a basic Retrieval-Augmented Generation (RAG) pipeline. The application is intended for development and demonstration purposes.
 
 ## Project Structure
 
-```text
 fastapi-rag-assignment/
-│
+
 ├── app/
+
 │   ├── __init__.py
+
 │   ├── auth.py
+
 │   ├── database.py
+
 │   ├── main.py
+
 │   ├── middleware.py
+
 │   ├── models.py
+
 │   ├── rag.py
+
 │   ├── schemas.py
-│   │
+
 │   └── routes/
+
 │       ├── __init__.py
+
 │       ├── auth_routes.py
+
 │       ├── chat_routes.py
+
 │       └── document_routes.py
-│
+
 ├── .env.example
+
 ├── .gitignore
+
 ├── README.md
+
 └── requirements.txt
+
+## Author
+
+Pesala Manjusha
+
+GitHub Repository:
+
+https://github.com/manju8309/fastapi-rag-assignment
