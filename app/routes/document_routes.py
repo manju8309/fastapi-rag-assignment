@@ -1,9 +1,16 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from fastapi import (
+    APIRouter,
+    Depends,
+    UploadFile,
+    File,
+    HTTPException
+)
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Document, DocumentChunk
+from app.models import User, Document, DocumentChunk
 from app.rag import chunk_text, create_embedding
+from app.auth import get_current_user
 
 
 router = APIRouter(
@@ -15,7 +22,8 @@ router = APIRouter(
 @router.post("/ingest")
 async def ingest_document(
     file: UploadFile = File(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     # Check file type
     if not file.filename or not file.filename.lower().endswith(".txt"):
@@ -38,11 +46,11 @@ async def ingest_document(
                 detail="The uploaded file is empty"
             )
 
-        # Save document
+        # Save document for the authenticated user
         document = Document(
             filename=file.filename,
             content=text,
-            user_id=1
+            user_id=current_user.id
         )
 
         db.add(document)
@@ -52,9 +60,8 @@ async def ingest_document(
         # Split document into chunks
         chunks = chunk_text(text)
 
-        # Generate embedding for each chunk
+        # Generate embeddings and save chunks
         for chunk in chunks:
-
             embedding = create_embedding(chunk)
 
             db_chunk = DocumentChunk(
@@ -72,7 +79,8 @@ async def ingest_document(
             "message": "Document ingested successfully",
             "document_id": document.id,
             "filename": file.filename,
-            "chunks_created": len(chunks)
+            "chunks_created": len(chunks),
+            "uploaded_by_user_id": current_user.id
         }
 
     except UnicodeDecodeError:
