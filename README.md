@@ -351,6 +351,14 @@ The `master` branch is used as the deployment branch for the Render service.
 
 ---
 
+## Live Deployment
+
+- **Live API:** https://fastapi-rag-assignment.onrender.com
+- **Swagger API Documentation:** https://fastapi-rag-assignment.onrender.com/docs
+- **GitHub Repository:** https://github.com/manju8309/fastapi-rag-assignment
+
+The application is deployed on Render. The Swagger API documentation can be used to test the available FastAPI endpoints.
+
 ## Author
 
 **Pesala Manjusha**
